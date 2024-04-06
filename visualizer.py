@@ -11,6 +11,10 @@ from matplotlib.animation import FuncAnimation
 from plot_utils import *
 from utils import *
 
+DCASE_CLASS_COLORS = {
+    0: 'red', 1: 'blue', 2: 'green', 3: 'orange', 4: 'purple', 5: 'yellow',
+    6: 'cyan', 7: 'magenta', 8: 'lime', 9: 'pink', 10: 'teal', 11: 'lavender', 12: 'brown'
+}
 
 def extract_visibilities(_data, _rate, T, fc, bw, alpha):
     """
@@ -530,14 +534,20 @@ def read_csv_file(file_path, max_duration=600):
 
 
 if __name__ == "__main__":
+    #######################################################################
+    ####################### Main script parameters ########################
+    #######################################################################
     event_duration = 60 # duration in seconds
     N_antenna = 32
+    frames_data = read_csv_file("fold5_room1_mix003_pred_polar.csv")
+    #######################################################################
+    #######################################################################
 
     freq, bw = (skutil  # Center frequencies to form images
                 .view_as_windows(np.linspace(1500, 4500, 10), (2,), 1)
                 .mean(axis=-1)), 50.0  # [Hz]
 
-    idx_s = 10  # For the sake of an example, we will choose the 10th audio frame (you can choose whichever frame you want)
+    idx_s = 10  # 10 frames per second (100 msec trames)
     idx_freq = 0  # choose 0th frequency
     T_sti = 10e-3
     T_stationarity = 10 * T_sti  # Choose to have frame_rate = 10
@@ -565,23 +575,6 @@ if __name__ == "__main__":
 
     plt.rcParams['figure.figsize'] = [10, 5]
 
-    color_dict = {
-    0: 'red',
-    1: 'blue',
-    2: 'green',
-    3: 'orange',
-    4: 'purple',
-    5: 'yellow',
-    6: 'cyan',
-    7: 'magenta',
-    8: 'lime',
-    9: 'pink',
-    10: 'teal',
-    11: 'lavender',
-    12: 'brown'
-    }
-    frames_data = read_csv_file("fold5_room1_mix003_pred_polar.csv")
-
     for i in range(event_duration * 10):  # for each 100 msec frame
         I_rgb = np.zeros((3, 3, N_px)).sum(axis=1)
         ground_truth_info = {}
@@ -592,7 +585,7 @@ if __name__ == "__main__":
             for ele in frames_data[i]:
                 active_class, azimuth, elevation = ele
                 ground_truth_info["gt"].append([azimuth, elevation])
-                ground_truth_info["color"].append(color_dict[active_class])
+                ground_truth_info["color"].append(DCASE_CLASS_COLORS[active_class])
                 ground_truth_info["num"].append(str(active_class))
         
         fig, ax, _ = draw_map(I_rgb, R_field,
